@@ -67,9 +67,9 @@ simcomp <- function(N, Mis, L, Tn,  Ksim = 5, kt = 10,
     if("gkg" %in% models){
       s2t1 <- Sys.time()
       m2 <- gibbs_mult_fpca2(formula(paste(paste("Y", paste(Xvars, collapse = "+"),  sep = "~"),  paste(" + re(subject) + re(curve)"))),
-                             data = Yall1, Kt = kt, N.iter = S, N.burn = S/2)
+                             data = Yall1, Kt = kt, N.iter = S, N.burn = Sburn)
       s2t2 <- difftime(Sys.time(), s2t1, units = "secs")
-      m2alphas <- array(unlist(lapply((S-Sburn+1):S, function(x) m2$Theta%*%m2$BW[,,x])), dim = c(Tn, L + 1, length((S/2+1):S)))
+      m2alphas <- array(unlist(lapply((Sburn+1):S, function(x) m2$Theta%*%m2$BW[,,x])), dim = c(Tn, L + 1, length((Sburn+1):S)))
       esses2 <- apply(m2alphas[,-1,], 2, function(x) apply(x, 1, ess_basic))
       essp2 <- (S - Sburn)*(as.numeric(s2t2)/esses2)
       ess2 <- mean(essp2)

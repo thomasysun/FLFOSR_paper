@@ -23,17 +23,10 @@ source("code/helper_functions.R")
 flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
                        a_a = .1, b_a = .1, a_g = .1, b_g = .1, a_w = .1, b_w = .1){
   
-  # N <- length(Y)
-  # 
+
   Mi <- table(z)
   MM <- sum(Mi)
-  # 
-  # #last observed timepoint
-  # Tau <- nrow(Y[[1]])
-  # 
-  # #total number of timepoints
-  # Tn <- nrow(Y[[1]])
-  
+
   N <- length(Mi)
   
   Tn <- nrow(Y)
@@ -64,13 +57,6 @@ flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
     ZX <- X
   }
 
-  # if(Nx == N){
-  #   ZX <-  rowrep(X, Mi)
-  #   ZXd <- split.data.frame(ZX, group1)
-  # }else{
-  #   ZXd <- split.data.frame(X, group1)
-  # }
-  
   ## MCMC
   
   a_alph <- a_a
@@ -105,9 +91,9 @@ flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
   progress <- floor(seq(1, S, length.out= 11))
   
   for(s in 1:S){
-      # eG <- sapply(Dk, function(x) (x)/(sig_e + (x)*sig_w))
+
       eG <- matrix(rep(1/(sig_e + sig_w), K), ncol = K)
-      # eG[nog,] <- 0
+
       
       sumeG <- rowsum(eG, group1)
       
@@ -125,18 +111,11 @@ flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
 
         if(L <= Nx){
         
-          # l_alpha <- crossprod(t(diag(eG[,x]) - H)%*%(ZX/36), Yk[,x])
-          # Q_alpha <- diag(1/sig_alpha) + crossprod(ZX)/6
-          # l_alpha <- t(ZX)%*%(Yk[,x])/6
-          # 
-          # Q_alpha <- crossprod(X*abs(c(sumeG - ((Dk[x]*sumeG))/(((1/sig_ga) + sumeG)))), X)
-          # Q_alpha <- (Dk[x])*t(ZX)%*%ZX
           ch_Q <- chol(matrix(Q_alpha[,x], nrow=L+1, ncol=L+1))
           alpha <- backsolve(ch_Q,
                              forwardsolve(t(ch_Q), l_alpha[,x]) +
                                rnorm((L+1)))
-          # alpha <- solve(matrix(Q_alpha[,x], nrow=L+1, ncol=L+1))%*%l_alpha[,x]
-          # print(solve(Q_alpha))
+
           alpha
           
         }else{
@@ -146,61 +125,34 @@ flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
           
           u <- rnorm(L+1, 0, sqrt(sig_alpha))
           delta <- rnorm(N)
-          # Phi <- c(sqrt(meaneG/(Dk[x]) - sapply(H, mean)
-          # ) )*X*Dk[x]
+
           Phi <- X*(sqrt(sumeG[,x] -  sapply(H, sum)))
           v = Phi%*%u + delta
-          # pw <- solve(tcrossprod(Phi*rep(sqrt(sig_alpha), each = N)) + diag(N), c(sqrt(meaneG/(Dk[x]) - sapply(H, mean)
-          # ) )*rowsum(Yk[,x],group1)/c(Mi) - v)
+
           pw <- solve(tcrossprod(Phi*rep(sqrt(sig_alpha), each = N)) + diag(N),
                       (rowsum(Yk[,x],group1)/c(Mi))*(sqrt(sumeG[,x] -  sapply(H, sum))) - v)
           alpha <- u + sig_alpha*t(Phi)%*%pw
           
-          # # l_alpha <- crossprod(ZX, eG[,x]*Yk[,x]- do.call(rbind, Map('%*%', H, split(Yk[,x], group1))))
-          # l_alpha <- crossprod(ZX/Mis, eG[,x]*Yk[,x]- do.call(rbind, Map('%*%', H, split(Yk[,x], group1))))
-          # 
-          # # Q_alpha <- diag(1/sig_alpha) +
-          # #   crossprod(X*(c((Dk[x])*sumeG - (Dk[x]^2)*sapply(H, sum)
-          # #                  ) ) , X)
-          # Q_alpha <- round(diag(c(1/sig_alpha)) +
-          #   crossprod(X*(c((Dk[x])*meaneG - (Dk[x]^2)*sapply(H, mean)
-          #   ) ) , X), 13)
-          # alpha <- rmvn(1,c( solve(Q_alpha)%*%l_alpha), solve(Q_alpha))
+
           alpha
         }
       })
-      # B%*%t(alpha)
-      #matplot(tcrossprod(Bk,  Yk - ZX%*%alpha), type = "l")    
-      #rep(1/sig_ga, times = K) + 
+
       Q_gaij <- rep(1/sig_ga, times = K) + rowsum(eG, group1)
-      # Q_gaij <- rowsum(eG, group1)
+
       l_gaij <- rowsum(eG*(Yk - ZX%*%alpha), group1)
-      # matplot(tcrossprod(Bk, (1/Q_gaij)*l_gaij), type = "l")
-      # matplot(tcrossprod(B,  (rep(1/Dk, each = MM) *Yk - ZX%*%alpha)), type = "l")    
       ga <- matrix(rnorm(N*K, (1/Q_gaij)*l_gaij, sqrt(1/Q_gaij)), nrow = N , K)
       ga[nog,] <- 0
       
-      # Q_gaij <- 1/sig_ga + c(tapply(eG, group1, sum))
-      # l_gaij <- rowsum(eG*(Yk - ZX%*%alpha), group1)
-      # ga <- matrix(rnorm(N*K, (1/Q_gaij)*l_gaij, sqrt(1/Q_gaij)), nrow = N , K)
-      # matplot(tcrossprod(Bk,  Z%*%(X%*%alpha + ga)), type = "l")  
-      
-      # Q_wij <- t(sapply(1/sig_w, function(z) Dk/sig_e + z))
+
       Q_wij <- 1/sig_w + 1/sig_e
-      # if(MM > 50000){
-      #   w <- matrix(rnorm(MM*K, (1/sig_e)*((rep(1/Dk, each = MM)*Yk -  rowrep(X%*%alpha + ga, Mi)))*(1/Q_wij), sd = sqrt(1/Q_wij)  ), nrow = MM, ncol = K)
-      # }else{
+
         if(Nx == N){
         w <- matrix(rnorm(MM*K, (1/(sig_e))*(Yk -   rowrep(X%*%alpha + ga, Mi))*c(1/Q_wij), sd = sqrt(1/Q_wij)  ), nrow = MM, ncol = K)
         }else{
           w <- matrix(rnorm(MM*K, (1/(sig_e))*(Yk -   ZX%*%alpha + rowrep(ga, Mi))*c(1/Q_wij), sd = sqrt(1/Q_wij)  ), nrow = MM, ncol = K)
         }
 
-      
-      # sig_w <- 1/rgamma(MM, a_omega + K/2, rate = b_omega + rowSums(((w))^2)/2)
-      # 
-      # sig_ga <- 1/rgamma(N, a_ga + K/2, rate = b_ga + rowSums(((ga))^2)/2)
-      
       sig_w <- rep(1/rgamma(N, a_omega + Mi*K/2, rate = b_omega + rowSums(rowsum(w^2, group1))/2), Mi)
 
       sig_ga <- rep(1/rgamma(1, a_ga + N*K/2, rate = b_ga + sum(((ga))^2)/2), N)
@@ -216,7 +168,7 @@ flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
           sig_e <- 1/rgamma(1, Tn*MM/2, rate = sum((Y - tcrossprod(Bk, (w +  ZX%*%alpha + rowrep(ga, Mi)) ))^2)/2)
         }
       }
-      # print(sig_w)
+
       w_post[[s]] <- w
       ga_post[[s]] <- ga
       alpha_post[[s]] <- alpha
@@ -224,25 +176,17 @@ flfosr1 <- function(Y, X, z, k = 10, S = 2000, S_burn = S/2,
       sig_alpha_post[s,] <- sig_alpha
       sig_ga_post[s,] <- sig_ga
       sig_w_post[s,] <- sig_w
-      # sig_ga_post[s,] <- sig_ga
-      # matplot(tcrossprod(B, (w + Z%*%(X%*%alpha + ga)) )[,1:3], type = "l")
-      # matplot(Y[,1:3], type = "p", add = TRUE)
-      # print(alpha[2,])
-      # print(round(alpha[5,], 2))
+
       if(s %in% progress){
         print(paste0("MCMC draws: [", s, "/", S, "]"))
       }
-      # matplot(B%*%t(Z%*%(X%*%alpha))[,1:10], type = "l")
-      # matplot(tcrossprod(B, ga)[,1:5], type = "l")
-      # matplot(tcrossprod(B, w)[,1:5], type = "l")
-      # matplot(tcrossprod(B, w + Z%*%(X%*%alpha + ga))[,1:5], type = "l")
-      
+   
   }
   
   #store MCMC draws of fixed effects functions
   alphaf_post <- list()
   for(i in 1:(L+1)){
-    alphaf_post[[i]] <- (Bk)%*%t(do.call(rbind, lapply(alpha_post, function(x) x[i,]))[(S_burn):S,])
+    alphaf_post[[i]] <- (Bk)%*%t(do.call(rbind, lapply(alpha_post, function(x) x[i,]))[(S_burn + 1):S,])
   }
   
   m1 <- list(X = X,
