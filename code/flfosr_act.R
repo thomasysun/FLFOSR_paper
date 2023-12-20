@@ -7,6 +7,7 @@ library(ggpubr)
 library(tidyr)
 library(patchwork)
 library(MetBrewer)
+library(posterior)
 
 source("code/process_nhanes_data_ts.R")
 source("code/flfosr1.R")
@@ -105,6 +106,23 @@ Yall1 <- makeYall()
 Xvars <- colnames(X)[-1]
 
 ###### Prediction plots
+source("code/process_nhanes_data_ts.R")
+
+Y <- Y[,order(W)]
+
+Y <- as.matrix(Y)
+
+L <- dim(X)[2] - 1
+Tn <- dim(Y)[1]
+Mi <- table(W)
+N <- length(Mi)
+
+S <- 2000
+
+s1t1 <- Sys.time()
+m1 <- flfosr1(Y, X, z = W, k = 10, S  = S)
+s1t <- difftime(Sys.time(), s1t1, units = "secs")   
+
 # NOTE: need to run model without standardizing X for this to make sense
 subjw_post <- array(NA, dim = c(sum(Mi), ncol(m1$B),S/2))
 Xnew <- X
@@ -153,11 +171,11 @@ p.act <- ggplot(df.act, aes(y = Activity, x = time, color = Age)) +
   scale_colour_met_d("Derain", direction = -1)+
   scale_fill_met_d("Derain", direction = -1)+
   theme_bw() + theme( legend.position=c(0.90, 0.90),
-                     axis.text.x = element_text( size = 14, colour = "black", angle = 90, vjust = 0.5, hjust=1),
-                     axis.text.y = element_text( size = 14, colour = "black"),
-                     axis.title = element_text( size = 15, colour = "black", face = "bold"),
-                     legend.text=element_text(size=14),
-                     legend.title=element_text(size=14),
+                     axis.text.x = element_text( size = 19, colour = "black", angle = 90, vjust = 0.5, hjust=1),
+                     axis.text.y = element_text( size = 19, colour = "black"),
+                     axis.title = element_text( size = 19, colour = "black", face = "bold"),
+                     legend.text=element_text(size=19),
+                     legend.title=element_text(size=19),
                      legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid'))+
   xlab("") + 
   ggtitle("") +
@@ -189,16 +207,16 @@ df.act.m <- data.frame(alphaf_mean)
 df.act.m$time <- seq(1,nrow(alphaf_mean))
 df.act.m$time <- factor(df.act.m$time)
 df.act.m$time <- as.numeric(df.act.m$time)
-colnames(df.act.m)[1:3] <- c("40","65","90")
-df.act.m <- gather(df.act.m, HDL_Cholesterol, Activity, c("40","65","90"), factor_key = T)
+colnames(df.act.m)[1:3] <- c("40 (mg/dL)","65","90")
+df.act.m <- gather(df.act.m, HDL_Cholesterol, Activity, c("40 (mg/dL)","65","90"), factor_key = T)
 
 df.act.l <- data.frame(alphaf_pcil)
-colnames(df.act.l)[1:3] <- c("40","65","90")
-df.act.l <- gather(df.act.l, HDL_Cholesterol, Activity.l, c("40","65","90"), factor_key = T)
+colnames(df.act.l)[1:3] <- c("40 (mg/dL)","65","90")
+df.act.l <- gather(df.act.l, HDL_Cholesterol, Activity.l, c("40 (mg/dL)","65","90"), factor_key = T)
 
 df.act.u <- data.frame(alphaf_pciu)
-colnames(df.act.u)[1:3] <- c("40","65","90")
-df.act.u <- gather(df.act.u, HDL_Cholesterol, Activity.u, c("40","65","90"), factor_key = T)
+colnames(df.act.u)[1:3] <- c("40 (mg/dL)","65","90")
+df.act.u <- gather(df.act.u, HDL_Cholesterol, Activity.u, c("40 (mg/dL)","65","90"), factor_key = T)
 
 df.act <- bind_cols(df.act.m, Activity.l = df.act.l[,2], Activity.u = df.act.u[,2])
 
@@ -211,13 +229,14 @@ p.act <- ggplot(df.act, aes(y = Activity, x = time, color = HDL_Cholesterol)) +
                       labels = c("4 AM", "8 AM", "12 PM", "4 PM", "8 PM", "12 AM"))+
   scale_colour_met_d("Derain", direction = -1)+
   scale_fill_met_d("Derain", direction = -1)+
-  labs( fill = "HDL Cholesterol \n (mg/dL)", colour = "HDL Cholesterol \n (mg/dL)", labels = "HDL Cholesterol \n (mg/dL)" ) +
-  theme_bw() + theme( legend.position=c(0.87, 0.90),
-                      axis.text.x = element_text( size = 14, colour = "black", angle = 90, vjust = 0.5, hjust=1),
-                      axis.text.y = element_text( size = 14, colour = "black"),
-                      axis.title = element_text( size = 15, colour = "black", face = "bold"),
-                      legend.text=element_text(size=14),
-                      legend.title=element_text(size=14),
+  ylim(0, 60) +
+  labs( fill = "HDL Cholesterol", colour = "HDL Cholesterol", labels = "HDL Cholesterol" ) +
+  theme_bw() + theme( legend.position=c(0.84, 0.90),
+                      axis.text.x = element_text( size = 19, colour = "black", angle = 90, vjust = 0.5, hjust=1),
+                      axis.text.y = element_text( size = 19, colour = "black"),
+                      axis.title = element_text( size = 19, colour = "black", face = "bold"),
+                      legend.text=element_text(size=19),
+                      legend.title=element_text(size=19),
                       legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid'))+
   xlab("") + 
   ggtitle("") +

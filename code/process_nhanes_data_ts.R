@@ -18,7 +18,7 @@ sapply(
   ), function(x) require(x, character.only=TRUE)
 )
 
-source("functions.R")
+source("code/helper_functions.R")
 
 # Create a (local) temporary directory 
 # where lab measurement (cholesterol, blood presure) data will be downloaded from the CDC website 
