@@ -27,7 +27,7 @@ N <- length(Mi)
 S <- 2000
 
 s1t1 <- Sys.time()
-m1 <- flfosr1(Y, X, z = W, k = 10, S  = S)
+m1 <- flfosr1(Y, X, z = W, k = 10, S  = S, a_g = .1, b_g = .1, a_w = .1, b_w = .1)
 s1t <- difftime(Sys.time(), s1t1, units = "secs")      
 
 ### Plots the fixed effects functions
@@ -42,6 +42,7 @@ fosrcoefplots <- function(alpha_post, B, index = 1:(L+1), maintitle = ""){
     
     alphaf_post <- B%*%t(do.call(rbind, lapply(alpha_post, function(x) x[index[i],]))[(S/2):S,])
     alphaf_pci <- apply(alphaf_post, 1, function(x) quantile(x, c(.025,.975)))
+    alphaf_pci_joint <- credBands(t(alphaf_post))
     alphaf_mean <- B%*%(colMeans(do.call(rbind, lapply(alpha_post, function(x) x[index[i],]))[(S/2):S,]))
     # matplot(cbind(alphaf_mean, t(alphaf_pci)), type="l", lty=c(1,2,2), col = c(1,2,2),
     #         main = colnames(X)[i])
@@ -49,21 +50,23 @@ fosrcoefplots <- function(alpha_post, B, index = 1:(L+1), maintitle = ""){
     # 
     # abline(h=0)
     df.act.m <- data.frame(time = seq(1,nrow(alphaf_post)), 
-                           mean = alphaf_mean, lower = alphaf_pci[1,], upper = alphaf_pci[2,])
+                           mean = alphaf_mean, lower = alphaf_pci[1,], upper = alphaf_pci[2,],
+                           lower_j = alphaf_pci_joint[1,], upper_j = alphaf_pci_joint[2,])
     # names(df.act.m) <-c("time", "SEQN_31128", "SEQN_31193")
     df.act.m$time <- factor(df.act.m$time)
     df.act.m$time <- as.numeric(df.act.m$time)
     p.act <- ggplot(df.act.m, aes(x = time))+ 
       geom_line(aes(y = mean),size = 2, colour = "blue") +
-      geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
+      geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.3) +
+      geom_ribbon(aes(ymin = lower_j, ymax = upper_j), alpha = 0.15) +
       scale_x_continuous( breaks =  seq(0, nrow(alphaf_post), len=6)[] + 1,
-                          labels = c("04:00", "08:00", "12:00", "16:00", "20:00", "00:00"))+
+                          labels = c("4AM", "8AM", "12PM", "4PM", "8PM", "12AM"))+
       scale_colour_met_d("Hokusai2")+
       theme_bw()+ theme( legend.position="none",
-                         axis.text.x = element_text( size = 9, colour = "black", angle = 0, vjust = 0.0, hjust=0.5),
-                         axis.text.y = element_text( size = 10, colour = "black"),
-                         axis.title = element_text( size = 10, colour = "black", face = "bold"))+
-      xlab("Time of Day")+ylab("") + 
+                         axis.text.x = element_text( size = 14, colour = "black", angle = 90, vjust = 0.5, hjust=0.5),
+                         axis.text.y = element_text( size = 14, colour = "black"),
+                         axis.title = element_text( size = 14, colour = "black", face = "bold"))+
+      xlab("")+ylab("") + 
       geom_hline(yintercept=0) +
       if(maintitle == ""){
         ggtitle(as.name(colnames(X)[index[i]]))

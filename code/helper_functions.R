@@ -99,4 +99,37 @@ fosryhat <- function(m1){
   output
 }
 
+#' Compute Simultaneous Credible Bands
+#'
+#' Compute (1-alpha)\% credible BANDS for a function based on MCMC samples using Crainiceanu et al. (2007)
+#'
+#' @param sampFuns \code{Nsims x m} matrix of \code{Nsims} MCMC samples and \code{m} points along the curve
+#' @param alpha confidence level
+#'
+#' @return \code{m x 2} matrix of credible bands; the first column is the lower band, the second is the upper band
+#'
+#' @note The input needs not be curves: the simultaneous credible "bands" may be computed
+#' for vectors. The resulting credible intervals will provide joint coverage at the (1-alpha)%
+#' level across all components of the vector.
+#'
+#' @export
+credBands = function(sampFuns, alpha = .05){
+  
+  N = nrow(sampFuns); m = ncol(sampFuns)
+  
+  # Compute pointwise mean and SD of f(x):
+  Efx = colMeans(sampFuns); SDfx = apply(sampFuns, 2, sd)
+  
+  # Compute standardized absolute deviation:
+  Standfx = abs(sampFuns - tcrossprod(rep(1, N), Efx))/tcrossprod(rep(1, N), SDfx)
+  
+  # And the maximum:
+  Maxfx = apply(Standfx, 1, max)
+  
+  # Compute the (1-alpha) sample quantile:
+  Malpha = quantile(Maxfx, 1-alpha)
+  
+  # Finally, store the bands in a (m x 2) matrix of (lower, upper)
+  t(cbind(Efx - Malpha*SDfx, Efx + Malpha*SDfx))
+}
 
