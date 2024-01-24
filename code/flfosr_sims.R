@@ -222,8 +222,19 @@ sc47 <- simcomp(30, 5, 200, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 
 scs4 <- rbind(sc41, sc42, sc43, sc44, sc45, sc46, sc47)
 #write.csv(scs4, file = "tables/dfsimresults_050323l.csv", row.names = FALSE)
 
+# increasing T
+sc51 <- simcomp(30, 5, 5, 50, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc52 <- simcomp(30, 5, 5, 100, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc53 <- simcomp(30, 5, 5, 200, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc54 <- simcomp(30, 5, 5, 500, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc55 <- simcomp(30, 5, 5, 1000, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+scs5 <- rbind(sc51,sc52,sc53,sc54,sc55)
+#write.csv(scs5, file = "tables/dfsimresults_050323t.csv", row.names = FALSE)
+
+
 
 ################ Accuracy comparison
+scs1 <- scs1
 scs1$scen <- apply(scs1[,c("sig_noise", "sig_with", "sig_bet", "sig_alpha")], 1, function(x) paste(x, collapse = ", "))
 
 dfs <- expand.grid(unique(scs1$scen), c("FLFOSR", "refund:Gibbs", "refund:VB", "Li et al. 2022", "FUI"),  c("RMSE", "MCIW", "ECP"))
@@ -234,15 +245,16 @@ e <- ggplot(dfs, aes(x = Var2, y = val))
 e2 <- e + geom_boxplot(
   aes(fill = Var3),
   position = position_dodge(0.9))   + 
-  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1), legend.position = "none", 
+  ggtitle(expression(sigma[epsilon]^"2"*"*, "*sigma[omega]^"2"*"*, "*sigma[gamma]^"2"*"*, "*sigma[alpha]^"2"*"*")) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none", 
         axis.title.x = element_blank(),
-        text = element_text(size = 16),
+        text = element_text(size = 21),
+        plot.title = element_text(size = 19),
         axis.title.y = element_blank()) + geom_hline(yintercept=.95, lty=1, 
-                                                     color = "red", linewidth=.5) +
-  ggtitle(expression(sigma[epsilon]^"2"*"*, "*sigma[omega]^"2"*"*, "*sigma[gamma]^"2"*"*, "*sigma[alpha]^"2"*"*")) 
+                                                     color = "red", linewidth=.5)
 
-e2  + facet_grid(Var3~Var1, scales = "free") + scale_y_facet(ROW == 1, limits = c(0, .25)) +
-  scale_y_facet(ROW == 2, limits = c(0, .8)) +
+e2  + facet_grid(Var3~Var1, scales = "free") + scale_y_facet(ROW == 1, limits = c(0.025, .25)) +
+  scale_y_facet(ROW == 2, limits = c(0.07, .8)) +
   scale_y_facet(ROW == 3, limits = c(.2, 1))
 
 ############### Time comparisons
@@ -259,16 +271,16 @@ dfs$val <- c(scs1$effr1, scs1$effr2)
 e <- ggplot(dfs, aes(x = Var2, y = val))
 e2 <- e + geom_boxplot(
   aes(fill = Var2),
-  position = position_dodge(0.9))   + 
-  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1), legend.position = "none", 
+  position = position_dodge(0.9))    +
+  ggtitle(expression(sigma[epsilon]^"2"*"*, "*sigma[omega]^"2"*"*, "*sigma[gamma]^"2"*"*, "*sigma[alpha]^"2"*"*")) +
+  theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust=1), legend.position = "none", 
         axis.title.x = element_blank(),
-        text = element_text(size = 16)) + geom_hline(yintercept=1, lty=1, 
+        plot.title = element_text(size  = 19),
+        text = element_text(size = 21)) + geom_hline(yintercept=1, lty=1, 
                                                      color = "black", linewidth=.5) +
   labs(y = expression(bar(N)[eff]/N)) +
   geom_hline(yintercept=0, lty=1, 
-             color = "black", linewidth=.5) +
-  ggtitle(expression(sigma[epsilon]^"2"*"*, "*sigma[omega]^"2"*"*, "*sigma[gamma]^"2"*"*, "*sigma[alpha]^"2"*"*")) 
-
+             color = "black", linewidth=.5)
 e2  + facet_grid(cols = vars(Var1), scales = "free") + scale_y_facet(ROW == 1, limits = c(0, 1))
 
 ### N
@@ -295,17 +307,18 @@ g <- ggplot(data = long, aes(y = value, x = N, group = cats2, color = cats2)) +
   scale_linetype_manual(values = c("TRUE" = "solid", "FALSE" = "dashed")) +
   geom_point(aes(shape = cats2), size = 4) +
   scale_shape_manual(values = c("FLFOSR" = 15, "refund:Gibbs" = 17, "refund:VB" = 17, "Li et al. 2022" = 19 , "FUI" = 19)) +
-  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 10)) +
+  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 8)) +
   scale_x_continuous(name = "Number of subjects (n)") +
   theme_bw()  + guides(linetype = "none") +
-  theme(legend.title = element_blank(), legend.position = c(.67, .80), legend.text = element_text(size=24),
+  theme(legend.title = element_blank(), legend.position = c(.67, .78), legend.text = element_text(size=32),
         legend.key.size = unit(1, 'cm'),
         legend.spacing.x = unit(0, "mm"),
         legend.spacing.y = unit(0, "mm"),
+        axis.text=element_text(size=34),
         legend.background = element_rect(fill="white",
                                          size=.1, linetype="solid", 
                                          colour ="black"),
-        text = element_text(size = 24))
+        text = element_text(size = 32))
 g
 
 
@@ -333,16 +346,17 @@ g2 <- ggplot(data = long, aes(y = value, x = Mis, group = cats2, color = cats2))
   scale_linetype_manual(values = c("TRUE" = "solid", "FALSE" = "dashed")) +
   geom_point(aes(shape = cats2), size = 4) +
   scale_shape_manual(values = c("FLFOSR" = 15, "refund:Gibbs" = 17, "refund:VB" = 17, "Li et al. 2022" = 19 , "FUI" = 19)) +
-  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 10)) +
+  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 8)) +
   scale_x_continuous(name = "Number of replicates per subject (m)") +
   theme_bw()  + guides(linetype = "none") +
-  theme(legend.title = element_blank(), legend.position = c(.67, .80), legend.text = element_text(size=24),
+  theme(legend.title = element_blank(), legend.position = c(.67, .78), legend.text = element_text(size=32),
         legend.key.size = unit(1, 'cm'),
         legend.spacing.y = unit(0, "mm"),
+        axis.text=element_text(size=34),
         legend.background = element_rect(fill="white",
                                          size=.1, linetype="solid", 
                                          colour ="black"),
-        text = element_text(size = 24))
+        text = element_text(size = 32))
 g2
 
 ### L
@@ -371,17 +385,58 @@ g3 <- ggplot(data = long, aes(y = value, x = L, group = cats2, color = cats2)) +
   scale_linetype_manual(values = c("TRUE" = "solid", "FALSE" = "dashed")) +
   geom_point(aes(shape = cats2), size = 4) +
   scale_shape_manual(values = c("FLFOSR" = 15, "refund:Gibbs" = 17, "refund:VB" = 17, "Li et al. 2022" = 19 , "FUI" = 19)) +
-  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 10)) +
+  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 8)) +
   scale_x_continuous(name = "Number of predictors (L)") +
   theme_bw()  + guides(linetype = "none") +
-  theme(legend.title = element_blank(), legend.position = c(.57, .80), legend.text = element_text(size=24),
+  theme(legend.title = element_blank(), legend.position = c(.57, .78), legend.text = element_text(size=32),
         legend.key.size = unit(1, 'cm'),
         legend.spacing.y = unit(0, "mm"),
+        axis.text=element_text(size=34),
         legend.background = element_rect(fill="white",
                                          size=.1, linetype="solid", 
                                          colour ="black"),
-        text = element_text(size = 24))
+        text = element_text(size = 32))
 g3
+
+
+### T
+
+scs5$effr1 <- scs5$s1t2/scs5$ess1
+scs5$effr2 <- scs5$s2t2/scs5$ess2
+
+scs5 <- apply(scs5, 2, function(x) colMeans(matrix(x, nrow = 30)))
+
+scs5 <- as.data.frame(scs5[, c("ess1","effr1", "ess2","effr2", "s3t2", "s4t2", "s5t2", 
+                               "N", "Mis", "L", "Tn", "kt")])
+
+long <- scs5 %>% 
+  pivot_longer(
+    cols = c("ess1", "ess2", "s3t2", "s4t2", "s5t2"), 
+    names_to = "cats",
+    values_to = "value"
+  )
+long$cats2 <- factor(long$cats)
+levels(long$cats2) <- c("FLFOSR", "refund:Gibbs", "refund:VB", "Li et al. 2022", "FUI")
+
+g4 <- ggplot(data = long, aes(y = value, x = Tn, group = cats2, color = cats2)) +
+  geom_line(aes(linetype=grepl("ess", cats)), size = 2) +
+  scale_linetype_manual(values = c("TRUE" = "solid", "FALSE" = "dashed")) +
+  geom_point(aes(shape = cats2), size = 4) +
+  scale_shape_manual(values = c("FLFOSR" = 15, "refund:Gibbs" = 17, "refund:VB" = 17, "Li et al. 2022" = 19 , "FUI" = 19)) +
+  scale_y_continuous(name = "Time (s)", breaks = pretty(long$value, n = 10)) +
+  scale_x_continuous(name = "Number of time points (T)") +
+  theme_bw()  + guides(linetype = "none") +
+  theme(legend.title = element_blank(), legend.position = c(.57, .78), legend.text = element_text(size=32),
+        legend.key.size = unit(1, 'cm'),
+        legend.spacing.y = unit(0, "mm"),
+        axis.text.x = element_text(hjust=.8), 
+        axis.text=element_text(size=33),
+        legend.background = element_rect(fill="white",
+                                         size=.1, linetype="solid", 
+                                         colour ="black"),
+        text = element_text(size = 32))
+g4
+
 
 
 #### Sensitivity analysis
@@ -406,12 +461,12 @@ scs1l <- rbind(sc1l,sc2l,sc3l,sc4l,sc5l,sc6l)
 
 
 #########
-scs <- scs1
-scs[,c(1,6,11) + 1] <- scs1h[,c(1,6,11)]
-scs[,c(1,6,11) + 2] <- scs1l[,c(1,6,11)]
-scs <- scs[,-c(4,5,9,10,14,15)]
+scs1s <- scs1
+scs1s[,c(1,6,11) + 1] <- scs1h[,c(1,6,11)]
+scs1s[,c(1,6,11) + 2] <- scs1l[,c(1,6,11)]
+scs1s <- scs1s[,-c(4,5,9,10,14,15)]
 
-scs1$scen <- apply(scs1[,c("sig_noise", "sig_with", "sig_bet", "sig_alpha")], 1, function(x) paste(x, collapse = ", "))
+scs1s$scen <- apply(scs1[,c("sig_noise", "sig_with", "sig_bet", "sig_alpha")], 1, function(x) paste(x, collapse = ", "))
 
 dfs <- expand.grid(unique(scs1$scen), c("Original", "High", "Low"),  c("RMSE", "MCIW", "ECP"))
 dfs <- dfs[rep(seq_len(nrow(dfs)), each = length(seeds)), ]
@@ -421,16 +476,17 @@ e <- ggplot(dfs, aes(x = Var2, y = val))
 e2 <- e + geom_boxplot(
   aes(fill = Var3),
   position = position_dodge(0.9))   + 
-  theme(axis.text.x = element_text(angle = 35, vjust = 1, hjust=1), legend.position = "none", 
+  ggtitle(expression(sigma[epsilon]^"2"*"*, "*sigma[omega]^"2"*"*, "*sigma[gamma]^"2"*"*, "*sigma[alpha]^"2"*"*")) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "none", 
         axis.title.x = element_blank(),
-        text = element_text(size = 16),
+        text = element_text(size = 21),
+        plot.title = element_text(size = 19),
         axis.title.y = element_blank()) + geom_hline(yintercept=.95, lty=1, 
-                                                     color = "red", linewidth=.5) +
-  ggtitle(expression(sigma[epsilon]^"2"*"*, "*sigma[omega]^"2"*"*, "*sigma[gamma]^"2"*"*, "*sigma[alpha]^"2"*"*")) 
+                                                     color = "red", linewidth=.5)
 
-e2  + facet_grid(Var3~Var1, scales = "free") + scale_y_facet(ROW == 1, limits = c(0, .2)) +
-  scale_y_facet(ROW == 2, limits = c(0, .8)) +
-  scale_y_facet(ROW == 3, limits = c(.3, 1))
+e2  + facet_grid(Var3~Var1, scales = "free") + scale_y_facet(ROW == 1, limits = c(0.025, .25)) +
+  scale_y_facet(ROW == 2, limits = c(0.07, .8)) +
+  scale_y_facet(ROW == 3, limits = c(.2, 1))
 
 
 

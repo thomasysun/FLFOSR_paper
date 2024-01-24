@@ -28,7 +28,15 @@ S <- 2000
 
 s1t1 <- Sys.time()
 m1 <- flfosr1(Y, X, z = W, k = 10, S  = S, a_g = .1, b_g = .1, a_w = .1, b_w = .1)
-s1t <- difftime(Sys.time(), s1t1, units = "secs")      
+s1t <- difftime(Sys.time(), s1t1, units = "secs")  
+
+# s1t1 <- Sys.time()
+# m1 <- flfosr1(Y, X, z = W, k = 10, S  = S, a_g = 5, b_g = 1, a_w = 5, b_w = 1)
+# s1t <- difftime(Sys.time(), s1t1, units = "secs")
+
+# s1t1 <- Sys.time()
+# m1 <- flfosr1(Y, X, z = W, k = 10, S  = S, a_g = .005, b_g = .001, a_w = .005, b_w = .001)
+# s1t <- difftime(Sys.time(), s1t1, units = "secs")
 
 ### Plots the fixed effects functions
 fosrcoefplots <- function(alpha_post, B, index = 1:(L+1), maintitle = ""){
@@ -44,15 +52,11 @@ fosrcoefplots <- function(alpha_post, B, index = 1:(L+1), maintitle = ""){
     alphaf_pci <- apply(alphaf_post, 1, function(x) quantile(x, c(.025,.975)))
     alphaf_pci_joint <- credBands(t(alphaf_post))
     alphaf_mean <- B%*%(colMeans(do.call(rbind, lapply(alpha_post, function(x) x[index[i],]))[(S/2):S,]))
-    # matplot(cbind(alphaf_mean, t(alphaf_pci)), type="l", lty=c(1,2,2), col = c(1,2,2),
-    #         main = colnames(X)[i])
-    # #,ylim = c(-1,1))
-    # 
-    # abline(h=0)
+
     df.act.m <- data.frame(time = seq(1,nrow(alphaf_post)), 
                            mean = alphaf_mean, lower = alphaf_pci[1,], upper = alphaf_pci[2,],
                            lower_j = alphaf_pci_joint[1,], upper_j = alphaf_pci_joint[2,])
-    # names(df.act.m) <-c("time", "SEQN_31128", "SEQN_31193")
+
     df.act.m$time <- factor(df.act.m$time)
     df.act.m$time <- as.numeric(df.act.m$time)
     p.act <- ggplot(df.act.m, aes(x = time))+ 
@@ -61,18 +65,21 @@ fosrcoefplots <- function(alpha_post, B, index = 1:(L+1), maintitle = ""){
       geom_ribbon(aes(ymin = lower_j, ymax = upper_j), alpha = 0.15) +
       scale_x_continuous( breaks =  seq(0, nrow(alphaf_post), len=6)[] + 1,
                           labels = c("4AM", "8AM", "12PM", "4PM", "8PM", "12AM"))+
+      ggtitle(as.name(maintitle[i])) + 
       scale_colour_met_d("Hokusai2")+
       theme_bw()+ theme( legend.position="none",
-                         axis.text.x = element_text( size = 14, colour = "black", angle = 90, vjust = 0.5, hjust=0.5),
-                         axis.text.y = element_text( size = 14, colour = "black"),
-                         axis.title = element_text( size = 14, colour = "black", face = "bold"))+
+                         axis.text.x = element_text( size = 17, colour = "black", angle = 90, vjust = 0.5, hjust=0.5),
+                         axis.text.y = element_text( size = 19, colour = "black"),
+                         axis.title.x = element_text( size = 1, colour = "black"),
+                         axis.title.y = element_text( size = 1, colour = "black"),
+                         plot.title = element_text( size = 19, colour = "black", face = "bold"))+
       xlab("")+ylab("") + 
-      geom_hline(yintercept=0) +
-      if(maintitle == ""){
-        ggtitle(as.name(colnames(X)[index[i]]))
-      }else{
-        ggtitle(as.name(maintitle[i]))
-      }
+      geom_hline(yintercept=0)
+      # if(maintitle == ""){
+      #   ggtitle(as.name(colnames(X)[index[i]]))
+      # }else{
+      #   ggtitle(as.name(maintitle[i]))
+      # }
 
     plot_list[[i]] <- p.act
     
@@ -81,18 +88,18 @@ fosrcoefplots <- function(alpha_post, B, index = 1:(L+1), maintitle = ""){
   par(mfrow=c(1,1))
 }
 titles <- c("Intercept", "BMI", "RaceBlack", "RaceHispanic", "RaceOther", "GenderFemale",
-  "Age", "Education = HS", "Education > HS", "DrinksPerWeek", "Formerly Smoke:Yes", "Currently Smoke: Yes",
+  "Age", "Education = HS", "Education > HS", "DrinksPerWeek", "Form. Smoke: Yes", "Curr. Smoke: Yes",
   "Diabetes: Yes", "CHF: Yes", "CHD: Yes", "Cancer: Yes", "Stroke: Yes", "HDL Cholesterol",
   "Total Cholesterol", "Systolic Blood Pressure", "Weekend: Yes")
 
-fosrcoefplots(m1$alpha_post, m1$B, maintitle = titles)
+# fosrcoefplots(m1$alpha_post, m1$B, maintitle = titles)
 
 fosrcoefplots(m1$alpha_post, m1$B, index = c(1:21)[-c(1,2,7,9,12,13,18,21)],
-              maintitle = titles[-c(1,2,7,9,12,13,18,21)]) #9x6 in
+              maintitle = titles[-c(1,2,7,9,12,13,18,21)]) #11x13 in
 
 fosrcoefplots(m1$alpha_post, m1$B, index = c(1,2,7,9,12,13,18,21), 
-              maintitle = c("Intercept", "BMI", "Age", "Education > HS", "Currently Smoke: Yes",
-                            "Diabetes: Yes", "HDL Cholesterol", "Weekend: Yes")) #11x5.5 in
+              maintitle = c("Intercept", "BMI", "Age", "Education > HS", "Curr. Smoke: Yes",
+                            "Diabetes: Yes", "HDL Cholesterol", "Weekend: Yes")) #11x6.5 in
 
 
 ### ESS
@@ -173,13 +180,13 @@ p.act <- ggplot(df.act, aes(y = Activity, x = time, color = Age)) +
                       labels = c("4 AM", "8 AM", "12 PM", "4 PM", "8 PM", "12 AM"))+
   scale_colour_met_d("Derain", direction = -1)+
   scale_fill_met_d("Derain", direction = -1)+
-  theme_bw() + theme( legend.position=c(0.90, 0.90),
-                     axis.text.x = element_text( size = 19, colour = "black", angle = 90, vjust = 0.5, hjust=1),
-                     axis.text.y = element_text( size = 19, colour = "black"),
-                     axis.title = element_text( size = 19, colour = "black", face = "bold"),
-                     legend.text=element_text(size=19),
-                     legend.title=element_text(size=19),
-                     legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid'))+
+  theme_bw() + theme( legend.position=c(0.90, 0.87),
+                      axis.text.x = element_text( size = 21, colour = "black", angle = 90, vjust = 0.5, hjust=1),
+                      axis.text.y = element_text( size = 21, colour = "black"),
+                      axis.title = element_text( size = 21, colour = "black", face = "bold"),
+                      legend.text=element_text(size= 21),
+                      legend.title=element_text(size= 21),
+                      legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid'))+
   xlab("") + 
   ggtitle("") +
   geom_hline(yintercept=0)
@@ -234,12 +241,12 @@ p.act <- ggplot(df.act, aes(y = Activity, x = time, color = HDL_Cholesterol)) +
   scale_fill_met_d("Derain", direction = -1)+
   ylim(0, 60) +
   labs( fill = "HDL Cholesterol", colour = "HDL Cholesterol", labels = "HDL Cholesterol" ) +
-  theme_bw() + theme( legend.position=c(0.84, 0.90),
-                      axis.text.x = element_text( size = 19, colour = "black", angle = 90, vjust = 0.5, hjust=1),
-                      axis.text.y = element_text( size = 19, colour = "black"),
-                      axis.title = element_text( size = 19, colour = "black", face = "bold"),
-                      legend.text=element_text(size=19),
-                      legend.title=element_text(size=19),
+  theme_bw() + theme( legend.position=c(0.5, 0.30),
+                      axis.text.x = element_text( size = 21, colour = "black", angle = 90, vjust = 0.5, hjust=1),
+                      axis.text.y = element_text( size = 21, colour = "black"),
+                      axis.title = element_text( size = 21, colour = "black", face = "bold"),
+                      legend.text=element_text(size= 21),
+                      legend.title=element_text(size= 21),
                       legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid'))+
   xlab("") + 
   ggtitle("") +
@@ -268,30 +275,96 @@ ess2l <- quantile(essp2, .05)
 ess2u <- quantile(essp2, .95)
 
 
-
-
 ###### Miscellanous plots (not in paper)
-subjw_post <- array(NA, dim = c(sum(Mi),ncol(m1$B),S/2))
-for(s in 1:(S/2)){
-  
-  subjw_post[,,s] <- X%*%m1$alpha_post[[s+S/2]] + rowrep(m1$ga_post[[s+S/2]], Mi) + m1$w_post[[s+S/2]]
-  
-}
-subjw_pci <-
-  apply(subjw_post[1:6,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.025))))
-  
-matplot( Y[,1:Mi[1]], type = "p")
-matplot(m1$B%*%t(apply(subjw_post[1:6,,],c(1,2),mean)), add = T, type = "l", lty =1)
-matplot(apply(subjw_post[1:6,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.025)))), add = T, type = "l", lty = 2)
-matplot(apply(subjw_post[1:6,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.975)))), add = T, type = "l", lty = 2)
-
-
-matplot( Y[,7:12], type = "p")
-matplot(m1$B%*%t(apply(subjw_post[7:12,,],c(1,2),mean)), add = T, type = "l", lty =1)
-matplot(apply(subjw_post[7:12,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.025)))), add = T, type = "l", lty = 2)
-matplot(apply(subjw_post[7:12,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.975)))), add = T, type = "l", lty = 2)
+# subjw_post <- array(NA, dim = c(sum(Mi),ncol(m1$B),S/2))
+# for(s in 1:(S/2)){
+#   
+#   subjw_post[,,s] <- X%*%m1$alpha_post[[s+S/2]] + rowrep(m1$ga_post[[s+S/2]], Mi) + m1$w_post[[s+S/2]]
+#   
+# }
+# subjw_pci <-
+#   apply(subjw_post[1:6,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.025))))
+#   
+# matplot( Y[,1:Mi[1]], type = "p")
+# matplot(m1$B%*%t(apply(subjw_post[1:6,,],c(1,2),mean)), add = T, type = "l", lty =1)
+# matplot(apply(subjw_post[1:6,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.025)))), add = T, type = "l", lty = 2)
+# matplot(apply(subjw_post[1:6,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.975)))), add = T, type = "l", lty = 2)
+# 
+# 
+# matplot( Y[,7:12], type = "p")
+# matplot(m1$B%*%t(apply(subjw_post[7:12,,],c(1,2),mean)), add = T, type = "l", lty =1)
+# matplot(apply(subjw_post[7:12,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.025)))), add = T, type = "l", lty = 2)
+# matplot(apply(subjw_post[7:12,,], 1, function(z) apply(m1$B%*%(z), 1, function(x) quantile(x, c(.975)))), add = T, type = "l", lty = 2)
 
 ######## EDA
+
+# Subjects 6 and 25
+subject <- 6
+df.act <- subset(Act_Analysis, SEQN %in% unique(Act_Analysis$SEQN)[subject])
+df.act.m <- data.frame(time = seq(1,1440), 
+                       t(df.act[,grep("MIN",names(df.act))]))
+
+df.act.m$time <- factor(df.act.m$time)
+df.act.m<- melt(df.act.m)
+df.act.m$time <- as.numeric(df.act.m$time)
+df.act.m$day <- as.numeric(df.act.m$variable)
+df.act.m$day <- factor(df.act.m$day)
+
+p.act <-ggplot(df.act.m, aes(x = time, group=day))+ 
+  geom_line(aes(y = value,color = day),size = 0.5)
+p.act <- p.act +
+  scale_x_continuous( breaks =  c(1, 481, 721, 1021, 1201, 1381),
+                      labels = c("12 AM", "8 AM", "12 PM", "5 PM", "8 PM", "11 PM"))+
+  scale_colour_met_d("Homer1")+
+  theme_bw()+ theme(legend.position = c(0.13, 0.64),
+                    legend.key.height=unit(.5,"line"),
+                    legend.title = element_text(size = 19),
+                    axis.text.x = element_text( size = 19, colour = "black", angle = 90, vjust = 0.5, hjust=1),
+                    axis.text.y = element_text( size = 19, colour = "black"),
+                    plot.title = element_text(size = 19),
+                    axis.title = element_text( size = 19, colour = "black", face = "bold"),
+                    legend.text=element_text(size=19))+
+  labs(color = "Day") +
+  xlab("")+ylab("Activity") + ggtitle(paste0("Subject ", subject)) +
+  geom_hline(yintercept=0)
+
+p.act
+
+subject <- 25
+df.act <- subset(Act_Analysis, SEQN %in% unique(Act_Analysis$SEQN)[subject])
+df.act.m <- data.frame(time = seq(1,1440), 
+                       t(df.act[,grep("MIN",names(df.act))]))
+
+df.act.m$time <- factor(df.act.m$time)
+df.act.m<- melt(df.act.m)
+df.act.m$time <- as.numeric(df.act.m$time)
+df.act.m$day <- as.numeric(df.act.m$variable)
+df.act.m$day <- factor(df.act.m$day)
+
+p.act2 <-ggplot(df.act.m, aes(x = time, group=day))+ 
+  geom_line(aes(y = value,color = day),size = 0.5)
+p.act2 <- p.act2 +
+  scale_x_continuous( breaks =  c(1, 481, 721, 1021, 1201, 1381),
+                      labels = c("12 AM", "8 AM", "12 PM", "5 PM", "8 PM", "11 PM"))+
+  scale_colour_met_d("Homer1")+
+  theme_bw()+ theme(legend.position = c(0.13, 0.64),
+                    legend.key.height=unit(.5,"line"),
+                    legend.title = element_text(size = 19),
+                    axis.text.x = element_text( size = 19, colour = "black", angle = 90, vjust = 0.5, hjust=1),
+                    axis.text.y = element_text( size = 19, colour = "black"),
+                    plot.title = element_text(size = 19),
+                    axis.title = element_text( size = 19, colour = "black", face = "bold"),
+                    legend.text=element_text(size=19))+
+  labs(color = "Day") +
+  xlab("")+ylab("") + ggtitle(paste0("Subject ", subject)) +
+  geom_hline(yintercept=0)
+
+p.act2
+# 11x5.5in
+p.act + p.act2
+
+
+## Not in paper
 Yeda <- data.frame(cbind(apply(Y, 1, function(x) mean(x)), apply(Y, 1, function(x) median(x)), apply(Y, 1, function(x) quantile(x, .75)), apply(Y, 1, function(x) quantile(x,.25))))
 colnames(Yeda) <- c("Mean", "Median", "75th Quantile", "25th Quantile")
 Yeda$time <- seq(1,nrow(Yeda))
