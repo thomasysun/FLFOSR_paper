@@ -6,7 +6,8 @@
 # Reference: Leroux et al (2019, Stat in Biosciences). https://link.springer.com/article/10.1007/s12561-018-09229-9
 # Reference: Smirnova et al. (2019, J Gerontol A Biol Sci Med Sci). https://www.ncbi.nlm.nih.gov/pubmed/31504213
 #----------------------------------------------------------------------------
-
+# install rnhanesdata package from github
+devtools::install_github("andrew-leroux/rnhanesdata")
 
 #rm(list = ls())
 # Aggregate activity counts into intervals of 'k_min' minutes
@@ -303,75 +304,3 @@ X = model.matrix( ~
 # 
 # X[,-1] <- scale(X[,-1])
 
-
-library(ggplot2)
-library(patchwork)
-library(MetBrewer)
-
-df.act <- subset(Act_Analysis, SEQN %in% unique(Act_Analysis$SEQN)[10])
-
-
-df.act.m <- data.frame(time = seq(1,1440), 
-                       t(df.act[df.act$WEEKDAY == 2,grep("MIN",names(df.act))]))
-
-# 6 and 25
-subject <- 6
-df.act <- subset(Act_Analysis, SEQN %in% unique(Act_Analysis$SEQN)[subject])
-df.act.m <- data.frame(time = seq(1,1440), 
-                       t(df.act[,grep("MIN",names(df.act))]))
-
-df.act.m$time <- factor(df.act.m$time)
-df.act.m<- melt(df.act.m)
-df.act.m$time <- as.numeric(df.act.m$time)
-df.act.m$day <- as.numeric(df.act.m$variable)
-df.act.m$day <- factor(df.act.m$day)
-
-p.act <-ggplot(df.act.m, aes(x = time, group=day))+ 
-  geom_line(aes(y = value,color = day),size = 0.5)
-p.act <- p.act +
-  scale_x_continuous( breaks =  c(1, 481, 721, 1021, 1201, 1381),
-                      labels = c("12 AM", "8 AM", "12 PM", "5 PM", "8 PM", "11 PM"))+
-  scale_colour_met_d("Homer1")+
-  theme_bw()+ theme(legend.position = c(0.10, 0.64),
-                    legend.key.height=unit(.5,"line"),
-                    axis.text.x = element_text( size = 15, colour = "black", angle = 90, vjust = 0.5, hjust=1),
-                    axis.text.y = element_text( size = 15, colour = "black"),
-                    axis.title = element_text( size = 15, colour = "black", face = "bold"),
-                    legend.text=element_text(size=15))+
-  labs(color = "Day") +
-  xlab("")+ylab("Activity") + ggtitle(paste0("Subject ", subject)) +
-  geom_hline(yintercept=0)
-
-p.act
-
-subject <- 25
-df.act <- subset(Act_Analysis, SEQN %in% unique(Act_Analysis$SEQN)[subject])
-df.act.m <- data.frame(time = seq(1,1440), 
-                       t(df.act[,grep("MIN",names(df.act))]))
-
-df.act.m$time <- factor(df.act.m$time)
-df.act.m<- melt(df.act.m)
-df.act.m$time <- as.numeric(df.act.m$time)
-df.act.m$day <- as.numeric(df.act.m$variable)
-df.act.m$day <- factor(df.act.m$day)
-
-p.act2 <-ggplot(df.act.m, aes(x = time, group=day))+ 
-  geom_line(aes(y = value,color = day),size = 0.5)
-p.act2 <- p.act2 +
-  scale_x_continuous( breaks =  c(1, 481, 721, 1021, 1201, 1381),
-                      labels = c("12 AM", "8 AM", "12 PM", "5 PM", "8 PM", "11 PM"))+
-  scale_colour_met_d("Homer1")+
-  theme_bw()+ theme(legend.position = c(0.10, 0.64),
-                    legend.key.height=unit(.5,"line"),
-                    axis.text.x = element_text( size = 15, colour = "black", angle = 90, vjust = 0.5, hjust=1),
-                    axis.text.y = element_text( size = 15, colour = "black"),
-                    axis.title = element_text( size = 15, colour = "black", face = "bold"),
-                    legend.text=element_text(size=15))+
-  labs(color = "Day") +
-  xlab("")+ylab("") + ggtitle(paste0("Subject ", subject)) +
-  geom_hline(yintercept=0)
-
-p.act2
-# 1100x450 px
-
-p.act + p.act2
