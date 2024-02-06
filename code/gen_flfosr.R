@@ -67,13 +67,9 @@ simfosr <- function(N, Mi, L, Tn, K = 5, sig_noise = .1, sig_with = .5, sig_bet 
   
   X <<- cbind(rep(1, N), scale(matrix(rnorm(N*L), nrow = N, ncol = L)))
   
-  # Z <<- makeZ(Mi)
   z <<- rep(1:N, Mi)
-  # Yk <<- w_true + Z%*%(X%*%t(alpha_true) + ga_true)
-  # Y <- B%*%t(w_true + Z%*%(ga_true))
+  
   Y <<- B%*%t(w_true + rowrep(X%*%t(alpha_true), Mi)) + t(rowrep(t(gaf_true), Mi)) + noise
-  # matplot(Y, type = "l")
-  # Y <<- lapply(split(data.frame(t( B%*%t(w_true + rowrep(X%*%t(alpha_true) + ga_true, Mi)) + noise )),  rep(1:N, Mi)), t)
   
 }
 

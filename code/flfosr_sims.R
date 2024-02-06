@@ -22,6 +22,47 @@ source("code/other_model_functions/FUI/lfosr3s.R")
 ### 3 "gkvb": variational bayes from refund package
 ### 4 "freq": frequentist fixed effects inference from Li et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35491388/
 ### 5 "FUI": Fast Univariate Inference from Cui et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35712524/
+
+## Warning: "gkg" runs extremely slowly
+
+
+#' @param N number of subjects.
+#' @param Mis integer or vector of length N specifying the number of replicates of each subject.
+#' @param L number of non-zero scalar covariates.
+#' @param Tn total number of time points.
+#' @param Ksim number of basis functions to simulate the functional data
+#' @param kt number of basis functions for the models.
+#' @param sig_noise observation level variance.
+#' @param sig_with within-curve smooth variance.
+#' @param sig_bet between-subjects smooth variance.
+#' @param sig_alpha fixed effects variance.
+#' @param shp a list containing hyperparameter values for the gamma variance priors. It must contain the following named elements:
+#' * a_a, b_a: shape and rate hyperparameters for fixed effects variance.
+#' * a_g, b_g: shape and rate hyperparameters for between-groups variance.
+#' * a_w, b_w: shape and rate hyperparameters for within-group variance.
+#' @param models character vector including one or more of the following: 
+#' * "prop": proposed model, FLFOSR
+#' * "gkg": gibbs sampler from refund package
+#' * "gkvb": variational bayes from refund package
+#' * "freq": frequentist fixed effects inference from Li et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35491388/
+#' * "FUI": Fast Univariate Inference from Cui et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35712524/
+#' * Warning: "gkg" runs extremely slowly
+#' @param seed (optional) sets the seed.
+#' @param S number of total MCMC iterations.
+#' @param Sburn number of initial MCMC iterations to discard (must be less than S).
+
+
+###### Gibbs sampler "gkg" runs extremely slowly (multiple days), so by default we skip the refund:Gibbs simulation results.
+###### Change this to TRUE if you would like to replicate all results from paper
+runrefund <- FALSE
+
+if(runrefund == TRUE){
+  models <- c("prop", "gkg", "gkvb", "freq", "fui")
+}else{
+  models <- c("prop", "gkvb", "freq", "fui")
+}
+
+
 simcomp <- function(N, Mis, L, Tn,  Ksim = 5, kt = 10,
                     sig_noise = .1, sig_with = .5, sig_bet = 1, sig_alpha = 2, shp = c(.1,.1,.1,.1,.1,.1),
                     models = c("prop", "gkg", "gkvb", "freq", "fui"), seed = 11, S = 2000, Sburn = 1000){
@@ -176,21 +217,21 @@ seeds <- 1:30
 
 #### Accuracy comparison
 
-sc1 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc2 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 1, sig_bet = 10, sig_alpha = 1, seed = seeds)
-sc3 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 10, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc4 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 10, sig_bet = 10, sig_alpha = 1, seed = seeds)
-sc5 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 1, sig_bet = 1, sig_alpha = 10, seed = seeds)
-sc6 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc1 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc2 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 1, sig_bet = 10, sig_alpha = 1, seed = seeds, models = models)
+sc3 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 10, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc4 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 10, sig_bet = 10, sig_alpha = 1, seed = seeds, models = models)
+sc5 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 1, sig_with = 1, sig_bet = 1, sig_alpha = 10, seed = seeds, models = models)
+sc6 <- simcomp(20, 5, 5, 144, kt=12, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
 scs1 <- rbind(sc1,sc2,sc3,sc4,sc5,sc6)
 #write.csv(scs1, file = "tables/dfsimresults_mse_050323.csv", row.names = FALSE)
 
 #### Time comparison
 
 # increasing N
-sc21 <- simcomp(10, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc22 <- simcomp(20, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc23 <- simcomp(50, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc21 <- simcomp(10, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc22 <- simcomp(20, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc23 <- simcomp(50, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
 sc24 <- simcomp(100, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1,  models = c("prop", "freq", "gkvb", "fui"), seed = seeds)
 sc25 <- simcomp(200, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1,  models = c("prop", "freq", "gkvb", "fui"), seed = seeds)
 
@@ -199,9 +240,9 @@ scs2 <- rbind(sc21, sc22, sc23, sc24, sc25)
 
 
 # increasing Mi
-sc31 <- simcomp(10, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc32 <- simcomp(10, 10, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc33 <- simcomp(10, 25, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc31 <- simcomp(10, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc32 <- simcomp(10, 10, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc33 <- simcomp(10, 25, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
 sc34 <- simcomp(10, 50, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1,  models = c("prop", "freq", "gkvb", "fui"), seed = seeds)
 sc35 <- simcomp(10, 100, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1,  models = c("prop", "freq", "gkvb", "fui"), seed = seeds)
 sc36 <- simcomp(10, 150, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1,  models = c("prop", "freq", "gkvb", "fui"), seed = seeds)
@@ -211,9 +252,9 @@ scs3 <- rbind(sc31, sc32, sc33, sc34, sc35, sc36)
 
 
 # increasing L
-sc41 <- simcomp(30, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc42 <- simcomp(30, 5, 10, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc43 <- simcomp(30, 5, 25, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc41 <- simcomp(30, 5, 5, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc42 <- simcomp(30, 5, 10, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc43 <- simcomp(30, 5, 25, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
 sc44 <- simcomp(30, 5, 33, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, models = c("prop", "freq", "gkvb", "gkg"),  seed = seeds)
 sc45 <- simcomp(30, 5, 50, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, models = c("prop", "freq", "gkvb"), seed = seeds)
 sc46 <- simcomp(30, 5, 100, 144, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1,  models = c("prop", "freq", "gkvb"), seed = seeds)
@@ -223,11 +264,11 @@ scs4 <- rbind(sc41, sc42, sc43, sc44, sc45, sc46, sc47)
 #write.csv(scs4, file = "tables/dfsimresults_050323l.csv", row.names = FALSE)
 
 # increasing T
-sc51 <- simcomp(30, 5, 5, 50, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc52 <- simcomp(30, 5, 5, 100, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc53 <- simcomp(30, 5, 5, 200, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc54 <- simcomp(30, 5, 5, 500, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
-sc55 <- simcomp(30, 5, 5, 1000, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds)
+sc51 <- simcomp(30, 5, 5, 50, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc52 <- simcomp(30, 5, 5, 100, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc53 <- simcomp(30, 5, 5, 200, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc54 <- simcomp(30, 5, 5, 500, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
+sc55 <- simcomp(30, 5, 5, 1000, kt=15, sig_noise = 10, sig_with = 1, sig_bet = 1, sig_alpha = 1, seed = seeds, models = models)
 scs5 <- rbind(sc51,sc52,sc53,sc54,sc55)
 #write.csv(scs5, file = "tables/dfsimresults_050323t.csv", row.names = FALSE)
 
