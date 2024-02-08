@@ -5,10 +5,13 @@ Paper: "Ultra-efficient MCMC for Bayesian longitudinal functional data analysis"
 
 ### Code
 
-The code folder contains necessary files to fit the FLFOSR model and reproduce the results in the paper
+The code folder contains necessary files to fit the FLFOSR model and reproduce the results in the paper.
 
+Please run the following files to produce results in the paper:
 * `./code/flfosr_act.R` produces results in the application section.
 * `./code/flfosr_sims.R` produces results in the simulations section.
+
+The folder also includes the following:
 * `./code/flfosr1.R` code for fitting FLFOSR model.
 * `./code/gen_flfosr.R` code that generates simulated longitudinal functional data for simulations.
 * `./code/helper_functions.R` miscellaneous helper functions.
@@ -25,4 +28,4 @@ The paper contains results from four competing methods:
 * Frequentist fixed effects inference with exchangeable correlations from Li et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35491388/
 * "FUI": Fast Univariate Inference from Cui et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35712524/
 
-The computation speed of the competing methods may be much slower, namely the Gibbs sampler from `refund`. Thus, these results are not run by default in the corresponding files. However, they may be included by setting `runrefund <- TRUE` inside the script.
+The computation speed of the competing methods may be much slower, namely the Gibbs sampler from `refund`. Thus, the `refund:Gibbs` model is not run by default in `flfosr_act.R` and `flfosr_sims.R`. However, it may be included by setting `runrefund <- TRUE` inside the script (may add up to an additional week to run the script).

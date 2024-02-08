@@ -2,7 +2,7 @@
 # Replicate application results in the paper
 #----------------------------------------------------------------------------
 
-library(ggplot2)
+library(tidyverse)
 library(ggpubr)
 library(tidyr)
 library(patchwork)
@@ -35,6 +35,8 @@ s1t1 <- Sys.time()
 m1 <- flfosr1(Y, X, z = W, k = 10, S  = S, a_g = .1, b_g = .1, a_w = .1, b_w = .1)
 s1t <- difftime(Sys.time(), s1t1, units = "secs")  
 
+
+####  Run these for sensitivity analysis
 # s1t1 <- Sys.time()
 # m1 <- flfosr1(Y, X, z = W, k = 10, S  = S, a_g = 5, b_g = 1, a_w = 5, b_w = 1)
 # s1t <- difftime(Sys.time(), s1t1, units = "secs")
@@ -138,6 +140,8 @@ s1t1 <- Sys.time()
 m1 <- flfosr1(Y, X, z = W, k = 10, S  = S)
 s1t <- difftime(Sys.time(), s1t1, units = "secs")   
 
+### Age
+
 # NOTE: need to run model without standardizing X for this to make sense
 subjw_post <- array(NA, dim = c(sum(Mi), ncol(m1$B),S/2))
 Xnew <- X
@@ -196,7 +200,8 @@ p.act <- ggplot(df.act, aes(y = Activity, x = time, color = Age)) +
   ggtitle("") +
   geom_hline(yintercept=0)
 p.act #7x5 in
-###
+
+### HDL Cholesterol
 
 subjw_post <- array(NA, dim = c(sum(Mi), ncol(m1$B),S/2))
 Xnew <- X

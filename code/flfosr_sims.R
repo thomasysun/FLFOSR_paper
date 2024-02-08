@@ -2,11 +2,12 @@
 # Replicate the simulation results in the paper
 #----------------------------------------------------------------------------
 
-library(ggplot2)
+library(tidyverse)
 library(ggh4x)
 library(tidyr)
 library(posterior)
 library(refund)
+library(face)
 
 source("code/flfosr1.R")
 source("code/gen_flfosr.R")
@@ -22,9 +23,6 @@ source("code/other_model_functions/FUI/lfosr3s.R")
 ### 3 "gkvb": variational bayes from refund package
 ### 4 "freq": frequentist fixed effects inference from Li et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35491388/
 ### 5 "FUI": Fast Univariate Inference from Cui et al. (2022) https://pubmed.ncbi.nlm.nih.gov/35712524/
-
-## Warning: "gkg" runs extremely slowly
-
 
 #' @param N number of subjects.
 #' @param Mis integer or vector of length N specifying the number of replicates of each subject.
@@ -52,7 +50,7 @@ source("code/other_model_functions/FUI/lfosr3s.R")
 #' @param Sburn number of initial MCMC iterations to discard (must be less than S).
 
 
-###### Gibbs sampler "gkg" runs extremely slowly (multiple days), so by default we skip the refund:Gibbs simulation results.
+###### Warning: Gibbs sampler "gkg" runs extremely slowly (multiple days), so by default we skip the refund:Gibbs simulation results.
 ###### Change this to TRUE if you would like to replicate all results from paper
 runrefund <- FALSE
 
@@ -211,8 +209,7 @@ simcomp <- function(N, Mis, L, Tn,  Ksim = 5, kt = 10,
   
 }
 
-# Replicate simulation results in the paper (may take a long time)
-
+# Number of simulation replications, can change to a smaller number to reduce computation time. 
 seeds <- 1:30
 
 #### Accuracy comparison
@@ -329,7 +326,7 @@ e2  + facet_grid(cols = vars(Var1), scales = "free") + scale_y_facet(ROW == 1, l
 scs2$effr1 <- scs2$s1t2/scs2$ess1
 scs2$effr2 <- scs2$s2t2/scs2$ess2
 
-scs2 <- apply(scs2, 2, function(x) colMeans(matrix(x, nrow = 30)))
+scs2 <- apply(scs2, 2, function(x) colMeans(matrix(x, nrow = length(seeds))))
 
 scs2 <- as.data.frame(scs2[, c("ess1","effr1", "ess2","effr2", "s3t2", "s4t2", "s5t2", 
                                "N", "Mis", "L", "Tn", "kt")])
@@ -368,7 +365,7 @@ g
 scs3$effr1 <- scs3$s1t2/scs3$ess1
 scs3$effr2 <- scs3$s2t2/scs3$ess2
 
-scs3 <- apply(scs3, 2, function(x) colMeans(matrix(x, nrow = 30)))
+scs3 <- apply(scs3, 2, function(x) colMeans(matrix(x, nrow = length(seeds))))
 
 scs3 <- as.data.frame(scs3[, c("ess1","effr1", "ess2","effr2", "s3t2", "s4t2", "s5t2", 
                                "N", "Mis", "L", "Tn", "kt")])
@@ -405,7 +402,7 @@ g2
 scs4$effr1 <- scs4$s1t2/scs4$ess1
 scs4$effr2 <- scs4$s2t2/scs4$ess2
 
-scs4 <- apply(scs4, 2, function(x) colMeans(matrix(x, nrow = 30)))
+scs4 <- apply(scs4, 2, function(x) colMeans(matrix(x, nrow = length(seeds))))
 
 scs4 <- as.data.frame(scs4[, c("ess1","effr1", "ess2","effr2", "s3t2", "s4t2", "s5t2", 
                                "N", "Mis", "L", "Tn", "kt")])
@@ -445,7 +442,7 @@ g3
 scs5$effr1 <- scs5$s1t2/scs5$ess1
 scs5$effr2 <- scs5$s2t2/scs5$ess2
 
-scs5 <- apply(scs5, 2, function(x) colMeans(matrix(x, nrow = 30)))
+scs5 <- apply(scs5, 2, function(x) colMeans(matrix(x, nrow = length(seeds))))
 
 scs5 <- as.data.frame(scs5[, c("ess1","effr1", "ess2","effr2", "s3t2", "s4t2", "s5t2", 
                                "N", "Mis", "L", "Tn", "kt")])
